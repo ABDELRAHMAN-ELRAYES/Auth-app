@@ -3,7 +3,15 @@ import morgan from 'morgan';
 import express from 'express';
 import { error } from './../interfaces/error';
 import cookieParser from 'cookie-parser';
+const xss = require('xss-clean');
+import helmet from 'helmet';
+import ExpressMongoSanitize from 'express-mongo-sanitize';
+import hpp from 'hpp';
 
+export const helmetMiddleware= helmet();
+export const hppMiddleware= hpp();
+export const sanitizeMiddleware= ExpressMongoSanitize();
+export const xssMiddleware = xss();
 export const bodyParser = express.json();
 export const morganMiddleware = morgan('dev');
 export const cookieParserMiddleware = cookieParser();
