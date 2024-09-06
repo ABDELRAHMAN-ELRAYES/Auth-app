@@ -91,20 +91,28 @@ export const protect = catchAsync(
     )(token, <string>process.env.JWT_SECRET_KEY);
 
     const user = await User.findById(decoded.id);
-    
+
     if (!user) {
       return next(new ErrorType(401, 'This user doesnt exist any more!.'));
     }
 
-    if(user.checkIfPasswordChanged(decoded.iat)){
+    if (user.checkPasswordIfChanged(decoded.iat)) {
       return next(
         new ErrorType(
           401,
           'This user password with current token is changed ,plz login again!.'
         )
-      )
-    };
-
+      );
+    }
+    req.user = user;
     next();
   }
 );
+export const strictUser = (...userRoles: string[])=> {
+  return (req: Request, res: Response, next: NextFunction)  => {
+    if (!userRoles.includes(req.user.role)) {
+      return next(new ErrorType(401, 'You are not authorized to do that!.'));
+    }
+    next();
+  };
+};
