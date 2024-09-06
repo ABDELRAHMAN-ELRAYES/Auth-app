@@ -3,6 +3,8 @@ import User from './../models/userModel';
 import jwt from 'jsonwebtoken';
 import { catchAsync } from '../utils/catchAsync';
 import { ErrorType } from '../utils/ErrorType';
+import cookieParser from 'cookie-parser';
+import { promisify } from 'util';
 
 const createToken = (id: string) => {
   return jwt.sign({ id }, <string>process.env.JWT_SECRET_KEY, {
@@ -40,9 +42,8 @@ export const signup = catchAsync(
 
 export const login = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    // check if the user is found by email
     if (!req.body.email || !req.body.password) {
-      return next(new ErrorHandler(404, 'Email or password is not found!!.'));
+      return next(new ErrorType(404, 'Email or password is not found!!.'));
     }
 
     const user = await User.findOne({ email: req.body.email }).select(
@@ -64,6 +65,46 @@ export const login = catchAsync(
       );
     }
 
-    res.status(200).json({ user });
+    sendToken(user, res);
+    res.status(200).json({
+      status: 'success',
+      message: 'You logged in successfully!.',
+    });
+  }
+);
+export const protect = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const token = req.cookies.jwt;
+    if (!token) {
+      return next(
+        new ErrorType(401, 'There is no token, your are not authorized')
+      );
+    }
+    const decoded = await promisify(
+      (
+        token: string,
+        jwt_pass: string,
+        callback: (err: any, decoded: any) => void
+      ) => {
+        return jwt.verify(token, jwt_pass, callback);
+      }
+    )(token, <string>process.env.JWT_SECRET_KEY);
+
+    const user = await User.findById(decoded.id);
+    
+    if (!user) {
+      return next(new ErrorType(401, 'This user doesnt exist any more!.'));
+    }
+
+    if(user.checkIfPasswordChanged(decoded.iat)){
+      return next(
+        new ErrorType(
+          401,
+          'This user password with current token is changed ,plz login again!.'
+        )
+      )
+    };
+
+    next();
   }
 );

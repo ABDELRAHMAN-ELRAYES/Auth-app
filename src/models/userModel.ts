@@ -58,7 +58,9 @@ userSchema.methods.checkPassword = async (
 ) => {
   return await bcrypt.compare(enteredPassword, userPassword);
 };
-
+userSchema.methods.checkPasswordIfChanged = function(tokenTimeStamp:number){
+  return this.passwordChangedAt > tokenTimeStamp;
+}
 const User = model<userDoc>('User', userSchema);
 
 export default User;

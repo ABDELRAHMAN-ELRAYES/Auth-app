@@ -10,4 +10,5 @@ export interface userDoc extends Document {
   passwordResetExpires?: Date;
   active: boolean;
   checkPassword: (paramOne: string, paramTwo: string) => Promise<boolean>;
+  checkIfPasswordChanged: (param: number) => boolean;
 }

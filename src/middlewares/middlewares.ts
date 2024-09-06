@@ -2,9 +2,11 @@ import { Request, Response, NextFunction } from 'express';
 import morgan from 'morgan';
 import express from 'express';
 import { error } from './../interfaces/error';
+import cookieParser from 'cookie-parser';
 
 export const bodyParser = express.json();
 export const morganMiddleware = morgan('dev');
+export const cookieParserMiddleware = cookieParser();
 export const GlobalErrorHandlerMiddleware = (
   err: error,
   req: Request,
