@@ -41,6 +41,9 @@ export const signup = catchAsync(
 export const login = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     // check if the user is found by email
+    if (!req.body.email || !req.body.password) {
+      return next(new ErrorHandler(404, 'Email or password is not found!!.'));
+    }
 
     const user = await User.findOne({ email: req.body.email }).select(
       '+password'
@@ -55,7 +58,6 @@ export const login = catchAsync(
       );
     }
     const isValid = await user.checkPassword(req.body.password, user.password);
-    console.log(isValid);
     if (!isValid) {
       return next(
         new ErrorType(401, 'Email or password is not correct ,plz try again!.')
